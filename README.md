@@ -1,21 +1,41 @@
-# Power Generation Scheduling Project
+# Power Generation Scheduling Using Gurobi and Genetic Algorithm
 
-This project solves a power generation scheduling problem using:
+This project solves a power generation scheduling problem using two approaches:
 
-1. Gurobi Mixed-Integer Linear Programming (MILP)
-2. Genetic Algorithm (nature-inspired metaheuristic)
+1. Mixed-Integer Linear Programming with Gurobi
+2. Genetic Algorithm as a nature-inspired metaheuristic
 
-The model schedules 10 power plant groups over a multi-day period and minimizes fuel, health, operating, startup, and shutdown costs.
+The problem is based on scheduling 10 power plant groups to satisfy electricity demand while minimizing total generation cost. The objective includes fuel cost, health cost, operating cost, startup cost, and shutdown cost.
 
+## Project Description
 
-For the 24-hour scheduling case, Gurobi obtained an objective value of 4,495,663.46. The Genetic Algorithm obtained a feasible solution with objective value 4,651,780.30. Since the GA penalty was zero, all modeled constraints were satisfied. The optimality gap between the GA and Gurobi solution was 3.47%, showing that the nature-inspired algorithm produced a near-optimal solution.
+The optimization problem is a unit commitment / economic dispatch problem. For each plant and each time period, the model decides:
 
-## Folder structure
+* whether the plant is on or off,
+* how much electricity the plant generates,
+* whether the plant starts up,
+* whether the plant shuts down.
+
+The Gurobi model is used as the exact MILP-based optimization approach. The Genetic Algorithm is used as an approximate nature-inspired method and is compared with the Gurobi result.
+
+## Main Result
+
+For the 24-hour scheduling case, Gurobi obtained an objective value of 4,495,663.46.
+
+The Genetic Algorithm obtained a feasible solution with objective value 4,651,780.30. Since the GA penalty was zero, all modeled constraints were satisfied. The optimality gap between the GA and Gurobi solution was 3.47%, showing that the nature-inspired algorithm produced a near-optimal solution.
+
+## Folder Structure
 
 ```text
 power_generation_project/
 ├── data/
 ├── src/
+│   ├── __init__.py
+│   ├── data_loader.py
+│   ├── evaluation.py
+│   ├── genetic_algorithm.py
+│   ├── gurobi_model.py
+│   └── plotting.py
 ├── results/
 ├── main.py
 ├── requirements.txt
@@ -24,7 +44,7 @@ power_generation_project/
 
 ## Setup
 
-Open the folder in Visual Studio or VS Code, then run:
+Install the required Python packages:
 
 ```bash
 pip install -r requirements.txt
@@ -36,39 +56,71 @@ Run the project:
 python main.py
 ```
 
-## Change the experiment
+## Experiment Settings
 
-In `main.py`, edit:
+The default experiment in `main.py` is the 24-hour case:
 
 ```python
 YEAR = 2011
 MONTH = 7
 START_DAY = 1
-END_DAY = 7
-```
-
-For a smaller first test, use:
-
-```python
-START_DAY = 1
 END_DAY = 1
 ```
 
+This setting is recommended for the main comparison because it gives a clean feasible result for both Gurobi and the Genetic Algorithm.
+
+A larger 7-day experiment can also be tested by changing:
+
+```python
+START_DAY = 1
+END_DAY = 7
+```
+
+For the 7-day case, the project uses daily rolling-horizon Gurobi optimization because the restricted Gurobi license may not allow solving the full 7-day MILP as one large model.
+
+## Gurobi Mode
+
+In `main.py`, the Gurobi mode can be changed:
+
+```python
+GUROBI_MODE = "daily"
+```
+
+Options:
+
+* `"daily"`: solves each day separately and combines the results
+* `"combined"`: solves the full selected horizon as one MILP model
+
+The `"daily"` mode is recommended when using the restricted/free Gurobi license.
+
 ## Outputs
 
-Results are saved in the `results/` folder:
+The project saves results in the `results/` folder:
 
-- `gurobi_generation.csv`
-- `ga_generation.csv`
-- `ga_history.csv`
-- `comparison.csv`
-- generation and convergence plots
+* `gurobi_generation.csv`
+* `ga_generation.csv`
+* `ga_history.csv`
+* `comparison.csv`
+* total generation plots
+* generation-by-plant plots
+* GA convergence plot
 
-## Important modeling notes
+## Modeling Notes
 
-- Nuclear plants are forced to stay on.
-- Nuclear plants have 80% minimum generation.
-- Non-nuclear plants have 1% minimum generation when on.
-- Ramp constraints are included in the Gurobi MILP.
-- The Genetic Algorithm uses a penalty function for infeasibilities.
-- Health-cost data is available for July 2007, so the project reuses that day/hour pattern for July scheduling experiments.
+* Nuclear plants are forced to stay on.
+* Nuclear plants have 80% minimum generation.
+* Non-nuclear plants have 1% minimum generation when on.
+* Ramp-up and ramp-down constraints are included in the Gurobi MILP.
+* The first-hour ramp constraint is not imposed because the dataset does not contain the actual generation level before the selected scheduling horizon.
+* The Genetic Algorithm uses a binary chromosome for plant on/off decisions.
+* The GA uses a penalty function for unmet demand, oversupply, ramp violations, and nuclear-off violations.
+* Health-cost data is available for July 2007, so the model reuses that day/hour pattern for July scheduling experiments.
+
+## Methods Compared
+
+| Method            | Description                                 |
+| ----------------- | ------------------------------------------- |
+| Gurobi MILP       | Exact mathematical optimization model       |
+| Genetic Algorithm | Nature-inspired metaheuristic approximation |
+
+The comparison is based on objective value, runtime, feasibility penalty, and percentage gap from the Gurobi solution.
