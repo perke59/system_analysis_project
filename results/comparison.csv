@@ -1,0 +1,3 @@
+method,status,objective_or_cost,penalty,runtime_seconds,mip_gap,gap_vs_gurobi_percent
+Gurobi MILP,DAILY_ROLLING_OK,4495663.459030137,0.0,0.03462620000937022,,
+Genetic Algorithm,COMPLETED,4651780.295981972,0.0,4.534652300004382,,3.4726095130242176
