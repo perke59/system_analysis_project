@@ -10,7 +10,7 @@ import pandas as pd
 
 try:
     from .data_loader import ProblemData
-except ImportError:  # Allows running this file directly in Visual Studio.
+except ImportError:  
     from data_loader import ProblemData
 
 
