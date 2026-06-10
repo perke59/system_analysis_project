@@ -8,7 +8,7 @@ import pandas as pd
 
 try:
     from .data_loader import ProblemData
-except ImportError:  # Allows running this file directly in Visual Studio.
+except ImportError:  
     from data_loader import ProblemData
 
 
@@ -69,12 +69,7 @@ def solve_with_gurobi(data: ProblemData, time_limit: int | None = None, mip_gap:
         name="nuclear_always_on",
     )
 
-    # Ramp-up/ramp-down constraints.
-    # IMPORTANT: we do NOT impose ramp constraints before the first selected hour.
-    # The uploaded dataset starts at the chosen day/hour, but it does not tell us the
-    # actual generation in the hour immediately before the schedule. If we assume that
-    # all non-nuclear plants were at zero before hour 1, the model becomes artificially
-    # infeasible because demand is already high at the first hour.
+
     first_t = T[0]
 
     for prev_t, current_t in zip(T[:-1], T[1:]):
